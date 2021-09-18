@@ -3,21 +3,24 @@ package com.example.simple_recorder
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.MediaStore
+import android.widget.MediaController
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.example.simple_recorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    var handler: Handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-
         binding.button.isEnabled = false
 
 
@@ -34,8 +37,16 @@ class MainActivity : AppCompatActivity() {
         val previewRequest =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 if (it.resultCode == RESULT_OK) {
-                    binding.videoView.setVideoURI(it.data?.data)
-                    binding.videoView.start()
+                    val uri: Uri = Uri.parse(it.data?.data.toString())
+                    binding.videoView.setVideoURI(uri)
+                    val mediaController = MediaController(this)
+                    mediaController.show()
+                    binding.videoView.setMediaController(mediaController)
+                    mediaController.setAnchorView(binding.videoView)
+                    handler.postDelayed(
+                        { mediaController.show(0) },
+                        100
+                    )
                 }
             }
 
